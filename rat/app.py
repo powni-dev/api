@@ -1,12 +1,11 @@
 from flask import Flask, jsonify
 import base64
 import requests
-from datetime import datetime
 
-# Flask uygulamasını oluştur (Render için 'application' ismi şart)
-application = Flask(__name__)
+# Flask uygulamasını oluştur (app ismiyle)
+app = Flask(__name__)
 
-@application.route('/api/<userid>', methods=['GET'])
+@app.route('/api/<userid>', methods=['GET'])
 def get_discord_user(userid):
     try:
         url = f"https://discordlookup.mesalytic.moe/v1/user/{userid}"
@@ -43,4 +42,4 @@ def get_discord_user(userid):
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    application.run(host='0.0.0.0', port=10000)
+    app.run(host='0.0.0.0', port=10000)
