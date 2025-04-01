@@ -1,37 +1,36 @@
-from flask import Flask, request, jsonify
-import requests
-import base64
 import os
+import base64
+import requests
+from http import HTTPStatus
 
-app = Flask(__name__)
+def handler(request):
+    user_id = request.args.get('id')
+    if not user_id:
+        return {
+            "statusCode": HTTPStatus.BAD_REQUEST,
+            "body": '{"error": "Please provide a Discord user ID using ?id="}'
+        }
 
-def get_discord_info(user_id):
+    # Discord bilgisi alma
     url = f"https://discordlookup.mesalytic.moe/v1/user/{user_id}"
     try:
         response = requests.get(url, timeout=5)
-        if response.status_code == 200:
-            return response.json()
-        return None
+        if response.status_code != 200:
+            return {
+                "statusCode": HTTPStatus.NOT_FOUND,
+                "body": '{"error": "Invalid ID or user not found!"}'
+            }
+        data = response.json()
     except requests.RequestException as e:
-        print(f"Error fetching Discord info: {e}")
-        return None
+        return {
+            "statusCode": HTTPStatus.INTERNAL_SERVER_ERROR,
+            "body": f'{{"error": "Failed to fetch Discord info: {str(e)}"}}'
+        }
 
-def get_token_info(user_id):
-    encoded_bytes = base64.b64encode(user_id.encode("utf-8"))
-    return str(encoded_bytes, "utf-8")
+    # Token bilgisi
+    token_fp = base64.b64encode(user_id.encode("utf-8")).decode("utf-8")
 
-@app.route('/api/', methods=['GET'])
-def discord_query():
-    user_id = request.args.get('id')
-    if not user_id:
-        return jsonify({"error": "Please provide a Discord user ID using ?id="}), 400
-
-    data = get_discord_info(user_id)
-    token_fp = get_token_info(user_id)
-
-    if not data:
-        return jsonify({"error": "Invalid ID or user not found!"}), 404
-
+    # Yanıt oluştur
     response = {
         "user_info": {
             "id": data['id'],
@@ -58,11 +57,8 @@ def discord_query():
         }
     }
 
-    return jsonify(response), 200
-
-@app.route('/', methods=['GET'])
-def home():
-    return jsonify({"message": "Welcome to Ratistan API! Use /api/?id=<Discord_ID> to get user info"}), 200
-
-if __name__ == "__main__":
-    app.run()
+    return {
+        "statusCode": HTTPStatus.OK,
+        "body": json.dumps(response),
+        "headers": {"Content-Type": "application/json"}
+    }
