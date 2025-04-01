@@ -3,22 +3,18 @@ import base64
 import requests
 from datetime import datetime
 
-# Flask uygulamasını oluştur
 app = Flask(__name__)
 
 @app.route('/api/<userid>', methods=['GET'])
 def get_discord_user(userid):
     try:
-        # Discord API isteği
         url = f"https://discordlookup.mesalytic.moe/v1/user/{userid}"
         response = requests.get(url, timeout=10)
         response.raise_for_status()
         data = response.json()
 
-        # Base64 token oluştur
         token_fp = base64.b64encode(userid.encode()).decode('utf-8')
 
-        # Yanıtı oluştur
         result = {
             "User_Info": {
                 "ID": data.get('id'),
@@ -30,7 +26,6 @@ def get_discord_user(userid):
                 "User_Token_First_Part": token_fp
             }
         }
-
         return jsonify(result)
 
     except requests.exceptions.RequestException as e:
@@ -38,7 +33,6 @@ def get_discord_user(userid):
     except Exception as e:
         return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
-# WSGI uyumluluğu için
 def create_app():
     return app
 
