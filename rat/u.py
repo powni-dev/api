@@ -3,76 +3,38 @@ import base64
 from datetime import datetime
 import requests
 
-def handler(event, context):
-    # Query parameters from event
+def main(request):
     try:
-        user_id = event.get('queryStringParameters', {}).get('id')
-    except:
-        return {
-            "statusCode": 400,
-            "body": json.dumps({"error": "Please provide a Discord user ID!"}),
-            "headers": {"Content-Type": "application/json"}
-        }
+        # Query parametresini al
+        user_id = request.args.get('id')
+        
+        if not user_id:
+            return json.dumps({"error": "Please provide a Discord user ID!"}), 400
 
-    if not user_id:
-        return {
-            "statusCode": 400,
-            "body": json.dumps({"error": "Please provide a Discord user ID!"}),
-            "headers": {"Content-Type": "application/json"}
-        }
-
-    # Get user info from Discord API
-    url = f"https://discordlookup.mesalytic.moe/v1/user/{user_id}"
-    try:
-        response = requests.get(url, timeout=5)
-        if response.status_code != 200:
-            return {
-                "statusCode": 404,
-                "body": json.dumps({"error": "Invalid ID or user not found!"}),
-                "headers": {"Content-Type": "application/json"}
-            }
+        # Discord API isteği
+        url = f"https://discordlookup.mesalytic.moe/v1/user/{user_id}"
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
         data = response.json()
-    except requests.RequestException as e:
-        return {
-            "statusCode": 500,
-            "body": json.dumps({"error": f"Failed to fetch Discord info: {str(e)}"}),
-            "headers": {"Content-Type": "application/json"}
+
+        # Yanıtı oluştur
+        result = {
+            "user_info": data,
+            "token_info": {
+                "user_token_first_part": base64.b64encode(user_id.encode()).decode('utf-8')
+            },
+            "timestamp": datetime.utcnow().isoformat()
         }
 
-    # Calculate first part of token
-    encoded_bytes = base64.b64encode(user_id.encode("utf-8"))
-    token_fp = str(encoded_bytes, "utf-8")
+        return json.dumps(result), 200, {'Content-Type': 'application/json'}
 
-    # Build detailed response
-    result = {
-        "user_info": {
-            "id": data['id'],
-            "username": data['username'],
-            "global_name": data['global_name'],
-            "created_at": data['created_at'],
-            "accent_color": data['accent_color'],
-            "badges": data['badges'],
-            "avatar_decoration": data['avatar_decoration']
-        },
-        "avatar": {
-            "id": data['avatar']['id'],
-            "is_animated": data['avatar']['is_animated'],
-            "link": data['avatar']['link']
-        },
-        "banner": {
-            "id": data['banner']['id'] if data['banner']['id'] else None,
-            "is_animated": data['banner']['is_animated'],
-            "link": data['banner']['link'] if data['banner']['link'] else None,
-            "color": data['banner']['color'] if 'color' in data['banner'] else None
-        },
-        "token_info": {
-            "user_token_first_part": token_fp
-        },
-        "timestamp": datetime.utcnow().isoformat()
-    }
+    except Exception as e:
+        return json.dumps({"error": str(e)}), 500
 
-    return {
-        "statusCode": 200,
-        "body": json.dumps(result),
-        "headers": {"Content-Type": "application/json"}
+# Vercel özel export
+def vercel_handler(request):
+    body, status_code, headers = main(request)
+    return body, {
+        'statusCode': status_code,
+        'headers': headers
     }
