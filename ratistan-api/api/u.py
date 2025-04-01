@@ -1,38 +1,37 @@
-import os
-import base64
-import requests
 import json
+import base64
+from datetime import datetime
+import requests
 from http import HTTPStatus
 
 def handler(request):
+    # Query parametresinden 'id' al
     user_id = request.args.get('id')
+
     if not user_id:
         return {
             "statusCode": HTTPStatus.BAD_REQUEST,
-            "body": '{"error": "Please provide a Discord user ID using ?id="}'
+            "body": json.dumps({"error": "Please provide a Discord user ID!"})
         }
 
-    # Discord bilgisi alma
+    # Discord API'den kullanıcı bilgisi alma
     url = f"https://discordlookup.mesalytic.moe/v1/user/{user_id}"
-    try:
-        response = requests.get(url, timeout=5)
-        if response.status_code != 200:
-            return {
-                "statusCode": HTTPStatus.NOT_FOUND,
-                "body": '{"error": "Invalid ID or user not found!"}'
-            }
-        data = response.json()
-    except requests.RequestException as e:
+    response = requests.get(url)
+
+    if response.status_code != 200:
         return {
-            "statusCode": HTTPStatus.INTERNAL_SERVER_ERROR,
-            "body": f'{{"error": "Failed to fetch Discord info: {str(e)}"}}'
+            "statusCode": HTTPStatus.NOT_FOUND,
+            "body": json.dumps({"error": "Invalid ID or user not found!"})
         }
 
-    # Token bilgisi
-    token_fp = base64.b64encode(user_id.encode("utf-8")).decode("utf-8")
+    data = response.json()
 
-    # Yanıt oluştur
-    response = {
+    # Token'ın ilk kısmını hesaplama
+    encoded_bytes = base64.b64encode(user_id.encode("utf-8"))
+    token_fp = str(encoded_bytes, "utf-8")
+
+    # Detaylı response oluşturma
+    result = {
         "user_info": {
             "id": data['id'],
             "username": data['username'],
@@ -55,11 +54,18 @@ def handler(request):
         },
         "token_info": {
             "user_token_first_part": token_fp
-        }
+        },
+        "timestamp": datetime.utcnow().isoformat()
     }
 
     return {
         "statusCode": HTTPStatus.OK,
-        "body": json.dumps(response),
-        "headers": {"Content-Type": "application/json"}
+        "body": json.dumps(result),
+        "headers": {
+            "Content-Type": "application/json"
+        }
     }
+
+# Vercel için gerekli yapı
+def main(request):
+    return handler(request)
