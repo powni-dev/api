@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "rat/u.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/rat/u",
+      "dest": "rat/u.py"
+    },
+    {
+      "src": "/",
+      "dest": "rat/u.py"
+    }
+  ]
+}
