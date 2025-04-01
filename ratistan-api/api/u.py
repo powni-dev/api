@@ -23,16 +23,21 @@ def handler(event, context):
 
     # Discord API'den kullanıcı bilgisi alma
     url = f"https://discordlookup.mesalytic.moe/v1/user/{user_id}"
-    response = requests.get(url)
-
-    if response.status_code != 200:
+    try:
+        response = requests.get(url, timeout=5)
+        if response.status_code != 200:
+            return {
+                "statusCode": 404,
+                "body": json.dumps({"error": "Invalid ID or user not found!"}),
+                "headers": {"Content-Type": "application/json"}
+            }
+        data = response.json()
+    except requests.RequestException as e:
         return {
-            "statusCode": 404,
-            "body": json.dumps({"error": "Invalid ID or user not found!"}),
+            "statusCode": 500,
+            "body": json.dumps({"error": f"Failed to fetch Discord info: {str(e)}"}),
             "headers": {"Content-Type": "application/json"}
         }
-
-    data = response.json()
 
     # Token'ın ilk kısmını hesaplama
     encoded_bytes = base64.b64encode(user_id.encode("utf-8"))
