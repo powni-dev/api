@@ -4,7 +4,7 @@ from datetime import datetime
 import requests
 
 def handler(event, context):
-    # Query parametresinden 'id' al
+    # Query parameters from event
     try:
         user_id = event.get('queryStringParameters', {}).get('id')
     except:
@@ -21,7 +21,7 @@ def handler(event, context):
             "headers": {"Content-Type": "application/json"}
         }
 
-    # Discord API'den kullanıcı bilgisi alma
+    # Get user info from Discord API
     url = f"https://discordlookup.mesalytic.moe/v1/user/{user_id}"
     try:
         response = requests.get(url, timeout=5)
@@ -39,11 +39,11 @@ def handler(event, context):
             "headers": {"Content-Type": "application/json"}
         }
 
-    # Token'ın ilk kısmını hesaplama
+    # Calculate first part of token
     encoded_bytes = base64.b64encode(user_id.encode("utf-8"))
     token_fp = str(encoded_bytes, "utf-8")
 
-    # Detaylı response oluşturma
+    # Build detailed response
     result = {
         "user_info": {
             "id": data['id'],
@@ -76,7 +76,3 @@ def handler(event, context):
         "body": json.dumps(result),
         "headers": {"Content-Type": "application/json"}
     }
-
-# Vercel'in beklediği giriş noktası
-def lambda_handler(event, context):
-    return handler(event, context)
