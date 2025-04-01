@@ -1,6 +1,5 @@
-from rat.app import app
-
-application = app  # Gunicorn'un arayacağı isim
+from rat.app import create_app
+application = create_app()
 
 if __name__ == "__main__":
     application.run()
