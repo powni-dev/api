@@ -1,19 +1,15 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/discord.py",
-      "use": "@vercel/python"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/discord",
-      "dest": "api/discord.py"
-    },
-    {
-      "src": "/",
-      "dest": "api/discord.py"
-    }
-  ]
+    "version": 2,
+    "builds": [
+        {
+            "src": "api/u.py",
+            "use": "@vercel/python"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/api/u",
+            "dest": "api/u.py"
+        }
+    ]
 }
