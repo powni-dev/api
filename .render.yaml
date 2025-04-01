@@ -1,9 +1,9 @@
 services:
   - type: web
-    name: ratistan-api
+    name: discord-api
     runtime: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn rat.wsgi:application"
+    startCommand: "gunicorn app:app"
     envVars:
       - key: PORT
         value: 10000
