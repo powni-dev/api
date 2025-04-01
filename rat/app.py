@@ -2,7 +2,7 @@ from flask import Flask, jsonify
 import base64
 import requests
 
-# Flask uygulamasını oluştur (app ismiyle)
+# Flask uygulamasını oluştur
 app = Flask(__name__)
 
 @app.route('/api/<userid>', methods=['GET'])
@@ -40,6 +40,10 @@ def get_discord_user(userid):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+# create_app fonksiyonu ekliyoruz
+def create_app():
+    return app
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
