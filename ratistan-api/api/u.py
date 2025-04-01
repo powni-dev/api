@@ -2,16 +2,23 @@ import json
 import base64
 from datetime import datetime
 import requests
-from http import HTTPStatus
 
-def handler(request):
+def handler(event, context):
     # Query parametresinden 'id' al
-    user_id = request.args.get('id')
+    try:
+        user_id = event.get('queryStringParameters', {}).get('id')
+    except:
+        return {
+            "statusCode": 400,
+            "body": json.dumps({"error": "Please provide a Discord user ID!"}),
+            "headers": {"Content-Type": "application/json"}
+        }
 
     if not user_id:
         return {
-            "statusCode": HTTPStatus.BAD_REQUEST,
-            "body": json.dumps({"error": "Please provide a Discord user ID!"})
+            "statusCode": 400,
+            "body": json.dumps({"error": "Please provide a Discord user ID!"}),
+            "headers": {"Content-Type": "application/json"}
         }
 
     # Discord API'den kullanıcı bilgisi alma
@@ -20,8 +27,9 @@ def handler(request):
 
     if response.status_code != 200:
         return {
-            "statusCode": HTTPStatus.NOT_FOUND,
-            "body": json.dumps({"error": "Invalid ID or user not found!"})
+            "statusCode": 404,
+            "body": json.dumps({"error": "Invalid ID or user not found!"}),
+            "headers": {"Content-Type": "application/json"}
         }
 
     data = response.json()
@@ -59,13 +67,11 @@ def handler(request):
     }
 
     return {
-        "statusCode": HTTPStatus.OK,
+        "statusCode": 200,
         "body": json.dumps(result),
-        "headers": {
-            "Content-Type": "application/json"
-        }
+        "headers": {"Content-Type": "application/json"}
     }
 
-# Vercel için gerekli yapı
-def main(request):
-    return handler(request)
+# Vercel'in beklediği giriş noktası
+def lambda_handler(event, context):
+    return handler(event, context)
