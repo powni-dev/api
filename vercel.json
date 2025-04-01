@@ -8,11 +8,7 @@
   ],
   "routes": [
     {
-      "src": "/rat/u",
-      "dest": "rat/u.py"
-    },
-    {
-      "src": "/",
+      "src": "/(.*)",
       "dest": "rat/u.py"
     }
   ]
