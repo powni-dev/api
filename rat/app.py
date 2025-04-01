@@ -17,8 +17,8 @@ def get_discord_user(userid):
         # Base64 token oluştur
         token_fp = base64.b64encode(userid.encode()).decode('utf-8')
 
-        # İstenen formatta yanıt oluştur
-        result = {
+        # İstenen formatta yanıt
+        return jsonify({
             "User Info": {
                 "ID": data['id'],
                 "Created At": data['created_at'],
@@ -39,26 +39,16 @@ def get_discord_user(userid):
                 "Link": data.get('banner', {}).get('link'),
                 "Color": data.get('banner', {}).get('color')
             },
-            "Raw Data": {
-                "Discriminator": 0,  # Yeni Discord sisteminde artık yok
-                "Public Flags": data.get('public_flags', 0),
-                "Flags": data.get('flags', 0),
-                "Banner Color": data.get('banner_color'),
-                "Clan": None,
-                "Primary Guild": None,
-                "Collectibles": None
-            },
             "Token Info": {
                 "User Token First Part": token_fp
             }
-        }
+        })
 
-        return jsonify(result)
-
-    except requests.exceptions.RequestException as e:
-        return jsonify({"error": f"Discord API error: {str(e)}"}), 502
     except Exception as e:
-        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+        return jsonify({"error": str(e)}), 500
+
+def create_app():
+    return app
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
