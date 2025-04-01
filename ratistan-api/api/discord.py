@@ -1,6 +1,7 @@
 import os
 import base64
 import requests
+import json
 from http import HTTPStatus
 
 def handler(request):
