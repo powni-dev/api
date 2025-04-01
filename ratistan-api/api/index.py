@@ -5,7 +5,6 @@ import os
 
 app = Flask(__name__)
 
-# Discord Kullanıcı Bilgisi Fonksiyonu
 def get_discord_info(user_id):
     url = f"https://discordlookup.mesalytic.moe/v1/user/{user_id}"
     try:
@@ -21,7 +20,6 @@ def get_token_info(user_id):
     encoded_bytes = base64.b64encode(user_id.encode("utf-8"))
     return str(encoded_bytes, "utf-8")
 
-# API Endpoint: Discord Kullanıcı Bilgisi
 @app.route('/api/', methods=['GET'])
 def discord_query():
     user_id = request.args.get('id')
@@ -62,7 +60,6 @@ def discord_query():
 
     return jsonify(response), 200
 
-# Kök dizin için basit bir yanıt
 @app.route('/', methods=['GET'])
 def home():
     return jsonify({"message": "Welcome to Ratistan API! Use /api/?id=<Discord_ID> to get user info"}), 200
